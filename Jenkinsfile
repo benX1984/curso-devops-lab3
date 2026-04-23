@@ -9,8 +9,8 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = "docker-hub"
         SONARQUBE_SERVER = "sonarqube"
 
-        // FIX: asegurar acceso a sonar-scanner
-        PATH = "/opt/sonar-scanner/bin:${env.PATH}"
+        // FIX IMPORTANTE: sonar-scanner global
+        PATH = "/usr/bin:/opt/sonar-scanner/bin:${env.PATH}"
     }
 
     stages {
@@ -43,7 +43,7 @@ pipeline {
                             -Dsonar.projectKey=lab3-devops \
                             -Dsonar.projectName=lab3-devops \
                             -Dsonar.sources=src \
-                            -Dsonar.host.url=http://host.docker.internal:9000 \
+                            -Dsonar.host.url=http://host.docker.internal:9001 \
                             -Dsonar.login=$SONAR_AUTH_TOKEN
                         """
                     }
