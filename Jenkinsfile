@@ -3,7 +3,10 @@ pipeline {
 
     environment {
         APP_NAME = "curso-devops-lab3"
-        IMAGE_NAME = "bmordoj/lab3-app"
+
+        //  usuario real GitHub
+        IMAGE_NAME = "benX1984/lab3-app"
+
         VERSION = "1.0.${BUILD_NUMBER}"
 
         DOCKER_HUB_CREDENTIALS = "docker-hub"
@@ -97,13 +100,13 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'ghcr-token', variable: 'GHCR_TOKEN')]) {
                     sh """
-                        echo $GHCR_TOKEN | docker login ghcr.io -u bmordoj --password-stdin
+                        echo $GHCR_TOKEN | docker login ghcr.io -u benX1984 --password-stdin
 
-                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/bmordoj/lab3-app:${VERSION}
-                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/bmordoj/lab3-app:latest
+                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/benX1984/lab3-app:${VERSION}
+                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/benX1984/lab3-app:latest
 
-                        docker push ghcr.io/bmordoj/lab3-app:${VERSION}
-                        docker push ghcr.io/bmordoj/lab3-app:latest
+                        docker push ghcr.io/benX1984/lab3-app:${VERSION}
+                        docker push ghcr.io/benX1984/lab3-app:latest
                     """
                 }
             }
@@ -115,7 +118,7 @@ pipeline {
                     kubectl apply -f kubernetes.yaml
 
                     kubectl set image deployment/${K8S_DEPLOYMENT} \
-                    app=ghcr.io/bmordoj/lab3-app:${VERSION} -n ${K8S_NAMESPACE}
+                    app=ghcr.io/benX1984/lab3-app:${VERSION} -n ${K8S_NAMESPACE}
                 """
             }
         }
