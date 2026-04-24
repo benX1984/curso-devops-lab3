@@ -8,7 +8,7 @@ pipeline {
         LOCAL_IMAGE = "lab3-app"
 
         // GHCR correcto (usuario real)
-        GHCR_IMAGE = "ghcr.io/benX1984/lab3-app"
+        GHCR_IMAGE = "ghcr.io/benx1984/lab3-app"
 
         VERSION = "1.0.${BUILD_NUMBER}"
 
@@ -25,7 +25,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/benX1984/curso-devops-lab3.git'
+                url: 'https://github.com/benx1984/curso-devops-lab3.git'
             }
         }
 
