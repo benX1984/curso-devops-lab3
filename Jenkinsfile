@@ -4,8 +4,11 @@ pipeline {
     environment {
         APP_NAME = "curso-devops-lab3"
 
-        //  usuario real GitHub
-        IMAGE_NAME = "benX1984/lab3-app"
+        // Imagen base local (build)
+        LOCAL_IMAGE = "lab3-app"
+
+        // GHCR correcto (usuario real)
+        GHCR_IMAGE = "ghcr.io/benX1984/lab3-app"
 
         VERSION = "1.0.${BUILD_NUMBER}"
 
@@ -53,7 +56,6 @@ pipeline {
                             -Dsonar.projectKey=lab3-devops \
                             -Dsonar.projectName=lab3-devops \
                             -Dsonar.sources=src \
-                            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
                             -Dsonar.host.url=http://sonarqube:9000 \
                             -Dsonar.token=$SONAR_AUTH_TOKEN
                         """
@@ -70,16 +72,16 @@ pipeline {
             }
         }
 
-        stage('Docker Build (multistage)') {
+        stage('Docker Build') {
             steps {
                 sh """
-                    docker build -t ${IMAGE_NAME}:${VERSION} .
-                    docker tag ${IMAGE_NAME}:${VERSION} ${IMAGE_NAME}:latest
+                    docker build -t ${LOCAL_IMAGE}:${VERSION} .
+                    docker tag ${LOCAL_IMAGE}:${VERSION} ${LOCAL_IMAGE}:latest
                 """
             }
         }
 
-        stage('Docker Hub Login & Push') {
+        stage('Docker Hub Push') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "${DOCKER_HUB_CREDENTIALS}",
@@ -89,36 +91,41 @@ pipeline {
                     sh """
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
 
-                        docker push ${IMAGE_NAME}:${VERSION}
-                        docker push ${IMAGE_NAME}:latest
+                        docker tag ${LOCAL_IMAGE}:${VERSION} bmordoj/lab3-app:${VERSION}
+                        docker tag ${LOCAL_IMAGE}:${VERSION} bmordoj/lab3-app:latest
+
+                        docker push bmordoj/lab3-app:${VERSION}
+                        docker push bmordoj/lab3-app:latest
                     """
                 }
             }
         }
 
-        stage('GHCR Login & Push') {
+        stage('GHCR Push') {
             steps {
                 withCredentials([string(credentialsId: 'ghcr-token', variable: 'GHCR_TOKEN')]) {
                     sh """
                         echo $GHCR_TOKEN | docker login ghcr.io -u benX1984 --password-stdin
 
-                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/benX1984/lab3-app:${VERSION}
-                        docker tag ${IMAGE_NAME}:${VERSION} ghcr.io/benX1984/lab3-app:latest
+                        docker tag ${LOCAL_IMAGE}:${VERSION} ${GHCR_IMAGE}:${VERSION}
+                        docker tag ${LOCAL_IMAGE}:${VERSION} ${GHCR_IMAGE}:latest
 
-                        docker push ghcr.io/benX1984/lab3-app:${VERSION}
-                        docker push ghcr.io/benX1984/lab3-app:latest
+                        docker push ${GHCR_IMAGE}:${VERSION}
+                        docker push ${GHCR_IMAGE}:latest
                     """
                 }
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy Kubernetes') {
             steps {
                 sh """
                     kubectl apply -f kubernetes.yaml
 
                     kubectl set image deployment/${K8S_DEPLOYMENT} \
-                    app=ghcr.io/benX1984/lab3-app:${VERSION} -n ${K8S_NAMESPACE}
+                    app=${GHCR_IMAGE}:${VERSION} -n ${K8S_NAMESPACE}
+
+                    kubectl rollout status deployment/${K8S_DEPLOYMENT} -n ${K8S_NAMESPACE}
                 """
             }
         }
@@ -126,10 +133,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline completado correctamente"
+            echo "✅ CI/CD Pipeline completado exitosamente"
         }
         failure {
-            echo "❌ Pipeline falló"
+            echo "❌ Pipeline falló - revisar logs"
         }
     }
 }
