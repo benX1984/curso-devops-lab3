@@ -22,7 +22,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                url: 'https://github.com/benX1984/curso-devops-lab3.git'
+                url: 'https://github.com/benx1984/curso-devops-lab3.git'
             }
         }
 
