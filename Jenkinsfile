@@ -8,9 +8,6 @@ pipeline {
 
         DOCKER_HUB_CREDENTIALS = "docker-hub"
         SONARQUBE_SERVER = "sonarqube"
-
-        // FIX IMPORTANTE: sonar-scanner global
-        PATH = "/usr/bin:/opt/sonar-scanner/bin:${env.PATH}"
     }
 
     stages {
@@ -43,8 +40,8 @@ pipeline {
                             -Dsonar.projectKey=lab3-devops \
                             -Dsonar.projectName=lab3-devops \
                             -Dsonar.sources=src \
-                            -Dsonar.host.url=http://host.docker.internal:9001 \
-                            -Dsonar.login=$SONAR_AUTH_TOKEN
+                            -Dsonar.host.url=http://sonarqube:9000 \
+                            -Dsonar.token=$SONAR_AUTH_TOKEN
                         """
                     }
                 }
@@ -53,7 +50,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -76,7 +73,7 @@ pipeline {
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh """
-                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                     """
                 }
             }
@@ -93,7 +90,7 @@ pipeline {
 
         stage('Notify Success') {
             steps {
-                echo "✅ Pipeline finalizado correctamente: ${IMAGE_NAME}:${VERSION}"
+                echo "✅ Pipeline finalizado: ${IMAGE_NAME}:${VERSION}"
             }
         }
     }
