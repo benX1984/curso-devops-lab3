@@ -2,30 +2,24 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: bmordoj
-
 ---
-
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: lab3-config
   namespace: bmordoj
 data:
-  USER_KEY: "lab3-user-key"
-
+  USER_KEY: "lab3-user"
 ---
-
 apiVersion: v1
 kind: Secret
 metadata:
-  name: app-secret
+  name: lab3-secret
   namespace: bmordoj
 type: Opaque
 data:
-  BD_PASSWORD: bXlwYXNzd29yZA==  # base64: mypassword
-
+  BD_PASSWORD: cGFzc3dvcmQ=   # password base64
 ---
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -42,24 +36,22 @@ spec:
         app: lab3-app
     spec:
       containers:
-        - name: app
-          image: ghcr.io/bmordoj/lab3-app:latest
+        - name: lab3-app
+          image: ghcr.io/benx1984/lab3-app:latest
           ports:
             - containerPort: 3000
           env:
             - name: USER_KEY
               valueFrom:
                 configMapKeyRef:
-                  name: app-config
+                  name: lab3-config
                   key: USER_KEY
             - name: BD_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: app-secret
+                  name: lab3-secret
                   key: BD_PASSWORD
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
