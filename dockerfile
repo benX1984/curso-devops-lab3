@@ -1,5 +1,5 @@
-# -------- BUILD STAGE --------
-FROM node:20-alpine AS builder
+# ===== BUILD =====
+FROM node:20 AS builder
 
 WORKDIR /app
 
@@ -9,15 +9,14 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# -------- RUNTIME STAGE --------
+# ===== RUNTIME =====
 FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --only=production
-
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package.json ./
 
 EXPOSE 3000
 
